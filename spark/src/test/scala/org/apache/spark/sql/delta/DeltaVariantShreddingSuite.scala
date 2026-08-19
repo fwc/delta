@@ -209,13 +209,20 @@ class DeltaVariantShreddingSuite
         .isFeatureSupported(VariantShreddingPreviewTableFeature),
         s"Table tbl contains ShreddedVariantTableFeature descriptor when its not supposed to"
       )
-      checkInvalidBooleanTablePropertyError(
-        intercept[SparkException] {
+
+      // Spark master now routes some invalid Delta table-property updates through the newer
+      // UNSUPPORTED_TABLE_CHANGE error class while released Spark versions still report the legacy
+      // temporary error. Both variants preserve the same message payload.
+      val ex = intercept[SparkException] {
           sql(s"ALTER TABLE tbl " +
             s"SET TBLPROPERTIES('${DeltaConfigs.ENABLE_VARIANT_SHREDDING.key}' = 'bla')")
-        },
-        invalidValue = "bla"
-      )
+      }
+      assert(
+        Set("_LEGACY_ERROR_TEMP_2045", "UNSUPPORTED_TABLE_CHANGE").contains(ex.getErrorClass()),
+        s"Unexpected error class $errorClass with parameters " +
+          s"${ex.getMessageParameters()}")
+      assert(ex.getMessageParameters().get("message") == "For input string: \"bla\"")
+
       assert(!getProtocolForTable("tbl")
         .readerAndWriterFeatures.contains(VariantShreddingPreviewTableFeature))
     }

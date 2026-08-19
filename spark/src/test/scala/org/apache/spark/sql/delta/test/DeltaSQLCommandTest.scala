@@ -36,22 +36,4 @@ trait DeltaSQLCommandTest extends SharedSparkSession {
       .set(SQLConf.V2_SESSION_CATALOG_IMPLEMENTATION.key,
         classOf[DeltaCatalog].getName)
   }
-
-  /**
-   * Spark master now routes some invalid Delta table-property updates through the newer
-   * UNSUPPORTED_TABLE_CHANGE error class while released Spark versions still report the legacy
-   * temporary error. Both variants preserve the same message payload.
-   */
-  protected def checkInvalidBooleanTablePropertyError(
-      error: SparkException,
-      invalidValue: String): Unit = {
-    val sparkThrowable = error.asInstanceOf[SparkThrowable]
-    val errorClass = sparkThrowable.getErrorClass()
-    val expectedMessage = "For input string: \"" + invalidValue + "\""
-    assert(
-      Set("_LEGACY_ERROR_TEMP_2045", "UNSUPPORTED_TABLE_CHANGE").contains(errorClass),
-      s"Unexpected error class $errorClass with parameters " +
-        s"${sparkThrowable.getMessageParameters()}")
-    assert(sparkThrowable.getMessageParameters().get("message") == expectedMessage)
-  }
 }

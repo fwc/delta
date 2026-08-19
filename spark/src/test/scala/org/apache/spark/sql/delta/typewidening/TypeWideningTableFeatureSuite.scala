@@ -83,13 +83,20 @@ trait TypeWideningTableFeatureEnablementTests extends QueryTest
     assert(ex.getMessage.contains("For input string: \"bla\""))
     sql(s"CREATE TABLE delta.`$tempPath` (a int) USING DELTA " +
        s"TBLPROPERTIES ('${DeltaConfigs.ENABLE_TYPE_WIDENING.key}' = 'false')")
-    checkInvalidBooleanTablePropertyError(
-      intercept[SparkException] {
+
+    // Spark master now routes some invalid Delta table-property updates through the newer
+    // UNSUPPORTED_TABLE_CHANGE error class while released Spark versions still report the legacy
+    // temporary error. Both variants preserve the same message payload.
+    val ex = intercept[SparkException] {
         sql(s"ALTER TABLE delta.`$tempPath` " +
           s"SET TBLPROPERTIES ('${DeltaConfigs.ENABLE_TYPE_WIDENING.key}' = 'bla')")
-      },
-      invalidValue = "bla"
-    )
+    }
+    assert(
+      Set("_LEGACY_ERROR_TEMP_2045", "UNSUPPORTED_TABLE_CHANGE").contains(ex.getErrorClass()),
+      s"Unexpected error class $errorClass with parameters " +
+        s"${ex.getMessageParameters()}")
+    assert(ex.getMessageParameters().get("message") == "For input string: \"bla\"")
+
     assert(!isTypeWideningSupported)
     assert(!isTypeWideningEnabled)
   }
