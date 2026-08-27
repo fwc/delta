@@ -27,13 +27,17 @@ import io.delta.kernel.TableManager
 import io.delta.kernel.engine.Engine
 import io.delta.kernel.internal.{SnapshotImpl => KernelSnapshot}
 
+import org.apache.spark.sql.test.SharedSparkSession
+
 /**
  * Tests for [[DeltaV2Snapshot]] focusing on the construction surface that is wired to the
  * underlying Kernel snapshot: `path` / `version`, the data members read from Kernel
  * (`metadata`, `protocol`, `allFiles`, `timestamp`, ...), and the V1 state-reconstruction members
  * that remain unsupported and throw [[UnsupportedOperationException]].
  */
-class DeltaV2SnapshotSuite extends DeltaSQLCommandTest {
+class DeltaV2SnapshotSuite
+  extends DeltaSQLCommandTest
+  with SharedSparkSession {
 
   // scalastyle:off deltahadoopconfiguration
   // No DeltaLog in this test (the snapshot is loaded via Kernel), so use the session Hadoop conf.

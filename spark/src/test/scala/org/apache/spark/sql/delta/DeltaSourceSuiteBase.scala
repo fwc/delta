@@ -23,7 +23,7 @@ import org.apache.spark.sql.delta.coordinatedcommits.CatalogOwnedTestBaseSuite
 import org.apache.spark.sql.delta.schema.{SchemaMergingUtils, SchemaUtils}
 import org.apache.spark.sql.delta.test.DeltaSQLTestUtils
 
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.{Column, DataFrame, SessionQueryTest, SparkSessionProvider}
 import org.apache.spark.sql.streaming.StreamTest
 import org.apache.spark.sql.types.StructType
 import org.scalactic.source.Position
@@ -32,8 +32,7 @@ import org.scalatest.Tag
 /**
  * Trait that provides abstraction for testing both DSv1 and DSv2 connectors.
  */
-trait DeltaSourceConnectorTrait {
-  self: DeltaSQLTestUtils =>
+trait DeltaSourceConnectorTrait extends SparkSessionProvider {
 
   protected def useDsv2: Boolean = false
 
@@ -49,9 +48,11 @@ trait DeltaSourceConnectorTrait {
   }
 }
 
-trait DeltaSourceSuiteBase extends StreamTest
+trait DeltaSourceSuiteBase
+  extends SessionQueryTest
   with DeltaSQLTestUtils
   with CatalogOwnedTestBaseSuite
+  with StreamTest
   with DeltaSourceConnectorTrait {
 
   /**

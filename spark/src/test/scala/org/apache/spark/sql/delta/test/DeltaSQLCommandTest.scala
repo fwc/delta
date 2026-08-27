@@ -20,14 +20,14 @@ import org.apache.spark.sql.delta.catalog.DeltaCatalog
 import io.delta.sql.DeltaSparkSessionExtension
 
 import org.apache.spark.{SparkConf, SparkException, SparkThrowable}
+import org.apache.spark.sql.SessionQueryTest
 import org.apache.spark.sql.internal.{SQLConf, StaticSQLConf}
-import org.apache.spark.sql.test.SharedSparkSession
 
 /**
  * A trait for tests that are testing a fully set up SparkSession with all of Delta's requirements,
  * such as the configuration of the DeltaCatalog and the addition of all Delta extensions.
  */
-trait DeltaSQLCommandTest extends SharedSparkSession {
+trait DeltaSQLCommandTest extends SessionQueryTest {
 
   override protected def sparkConf: SparkConf = {
     super.sparkConf
